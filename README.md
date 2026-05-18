@@ -1,6 +1,6 @@
 # [full stack nginx Bagisto for everyone with docker compose](https://github.com/damalis/full-stack-nginx-bagisto-for-everyone-with-docker-compose)
 
-If You want to build Bagisto at short time;
+If You want to build a website with Bagisto at short time;
 
 #### Full stack Nginx Bagisto:
 [![Bagisto](https://img.shields.io/badge/eCommerce-Bagisto-0141FF?style=flat&logo=bagisto&logoColor=white)](https://bagisto.com/)
