@@ -3,7 +3,7 @@
 If You want to build Bagisto at short time;
 
 #### Full stack Nginx Bagisto:
-[![Bagisto](https://img.shields.io/badge/eCommerce-Bagisto-0141FF?style=for-the-badge&logo=bagisto&logoColor=white)](https://bagisto.com/)
+[![Bagisto](https://img.shields.io/badge/eCommerce-Bagisto-0141FF?style=flat&logo=bagisto&logoColor=white)](https://bagisto.com/)
 [![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white)](https://www.docker.com/)
 [![MariaDB](https://img.shields.io/badge/MariaDB-003545?style=flat&logo=mariadb&logoColor=white)](https://mariadb.org/)
 [![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=flat&logo=mysql&logoColor=white)](https://dev.mysql.com/)
