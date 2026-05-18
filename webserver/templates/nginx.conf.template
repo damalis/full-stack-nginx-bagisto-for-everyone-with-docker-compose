@@ -1,0 +1,177 @@
+upstream docker_bagisto {
+	server	bagisto:9000;
+}
+
+upstream docker_mail  {
+	server	mail:8025;
+}
+
+upstream docker_kibana  {
+	server	kibana:5601;
+}
+
+map $scheme $proxy_x_forwarded_ssl {
+	default off;
+	https on;
+}
+
+server {
+	listen ${NGINX_PORT} default_server;
+	listen [::]:${NGINX_PORT} ipv6only=on default_server;
+	#
+	server_name ${NGINX_HOST} www.${NGINX_HOST};
+	#
+	location ~ ^/.well-known/acme-challenge/ {
+		root /tmp/acme-challenge;
+	}
+	#
+	#location / {
+		#port_in_redirect off;
+		#return 301 https://$host$request_uri;
+	#}
+}
+
+server {
+	#listen 443 ssl;
+	#listen [::]:443 ipv6only=on ssl;
+	#
+	server_name ${NGINX_HOST} www.${NGINX_HOST};
+	#
+	#ssl_certificate /etc/letsencrypt/live/${NGINX_HOST}/fullchain.pem;
+	#ssl_certificate_key /etc/letsencrypt/live/${NGINX_HOST}/privkey.pem;
+	#ssl_trusted_certificate /etc/letsencrypt/live/${NGINX_HOST}/chain.pem;
+	#ssl_dhparam /etc/letsencrypt/ssl-dhparam.pem;
+	include /etc/letsencrypt/options-ssl-nginx-webserver.conf;
+
+	root /var/www/html/public;
+	index index.php;
+	charset utf-8;
+
+	client_max_body_size 100M;
+	
+	# --- Health check endpoint ---
+	location = /health {
+		access_log off;
+		return 200 "OK";
+		add_header Content-Type text/plain;
+	}
+
+	# --- Static assets with cache headers ---
+	location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot|webp|avif)$ {
+		expires 1y;
+		add_header Cache-Control "public, immutable";
+		access_log off;
+		try_files $uri =404;
+	}
+	
+	# --- Laravel routing ---
+	location / {
+		try_files $uri $uri/ /index.php?$query_string;
+	}
+
+	location = /favicon.ico { access_log off; log_not_found off; }
+	location = /robots.txt  { access_log off; log_not_found off; }
+
+	error_page 404 /index.php;
+
+	# --- PHP-FPM ---
+	location ~ ^/index\.php(/|$) {
+		fastcgi_pass docker_bagisto;
+		fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+		include fastcgi_params;
+		fastcgi_hide_header X-Powered-By;
+
+		fastcgi_buffering on;
+		fastcgi_buffer_size 16k;
+		fastcgi_buffers 16 16k;
+
+		fastcgi_connect_timeout 60s;
+	        fastcgi_send_timeout 300s;
+		fastcgi_read_timeout 300s;
+	}
+
+	# --- Deny dotfiles ---
+	location ~ /\.(?!well-known).* {
+		deny all;
+	}
+
+	# --- Deny access to sensitive files ---
+	location ~ /\.(env|git|svn) {
+		deny all;
+		return 404;
+	}
+
+	# --- Gzip ---
+	gzip on;
+	gzip_vary on;
+	gzip_proxied any;
+	gzip_comp_level 6;
+	gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript image/svg+xml;
+	#
+	access_log off;
+	error_log  /var/log/nginx/${NGINX_HOST}-443.error.log error;
+}
+
+server {
+	#listen 443 ssl;
+	#
+	#server_name mail.${NGINX_HOST};
+	
+	location / {		
+		proxy_pass	http://docker_mail;		
+		proxy_set_header	X-Real-IP	$remote_addr;
+		proxy_set_header	X-Forwarded-For	$proxy_add_x_forwarded_for;
+		proxy_set_header	X-Forwarded-Proto	$scheme;		
+		proxy_set_header	Host	$host;
+		proxy_set_header	X-Forwarded-Host	$host;
+		proxy_set_header	X-Forwarded-Port	$server_port;	
+		proxy_set_header	Upgrade	$http_upgrade;
+		proxy_set_header	Connection	"Upgrade";
+		proxy_set_header	X-Forwarded-Ssl	$proxy_x_forwarded_ssl;		
+			
+		#
+		proxy_redirect	off;
+		proxy_connect_timeout	90;
+		proxy_send_timeout	90;
+		proxy_read_timeout	90;
+		proxy_request_buffering	off;
+		#
+		# Mitigate httpoxy attack
+		proxy_set_header Proxy "";        
+	}
+	#
+	access_log off;
+	error_log  off;
+}
+
+server {
+	#listen 443 ssl;
+	#
+	#server_name kibana.${NGINX_HOST};
+	
+	location / {		
+		proxy_pass	http://docker_kibana;		
+		proxy_set_header	X-Real-IP	$remote_addr;
+		proxy_set_header	X-Forwarded-For	$proxy_add_x_forwarded_for;
+		proxy_set_header	X-Forwarded-Proto	$scheme;		
+		proxy_set_header	Host	$host;
+		proxy_set_header	X-Forwarded-Host	$host;
+		proxy_set_header	X-Forwarded-Port	$server_port;	
+		proxy_set_header	Upgrade	$http_upgrade;
+		proxy_set_header	Connection	"Upgrade";
+		proxy_set_header	X-Forwarded-Ssl	$proxy_x_forwarded_ssl;		
+			
+		#
+		proxy_redirect	off;
+		proxy_connect_timeout	90;
+		proxy_send_timeout	90;
+		proxy_read_timeout	90;
+		proxy_request_buffering	off;
+		#
+		# Mitigate httpoxy attack
+		proxy_set_header Proxy "";        
+	}
+	#
+	access_log off;
+	error_log  off;
+}
