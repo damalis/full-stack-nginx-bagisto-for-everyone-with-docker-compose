@@ -328,7 +328,7 @@ https://DOMAIN_NAME/admin
 ```
 
 ```
-Email: admin@example.com
+Email Address: admin@example.com
 Password: admin123
 ```
 
