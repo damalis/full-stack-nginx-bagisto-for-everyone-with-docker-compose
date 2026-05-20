@@ -499,14 +499,14 @@ do
 done
 echo "Ok."
 
-db_table_prefix_regex="^[0-9a-zA-Z\$_]{5,}$"
-read -p 'Enter Database Table Prefix(at least 5 characters, default : data_): ' db_table_prefix
-: ${db_table_prefix:=data_}
+db_table_prefix_regex="^[0-9a-zA-Z_ ]{,4}$"
+read -p 'Enter Database Table Prefix(The prefix should be 4 characters long and can only contain letters, numbers, and underscores or Leave it blank.): ' db_table_prefix
+: ${db_table_prefix:=""}
 while [[ ! $db_table_prefix =~ $db_table_prefix_regex ]]
 do
-	echo "Try again (can only contain numerals 0-9, basic Latin letters, both lowercase and uppercase, dollar sign and underscore)"
-	read -p 'Enter Database Table Prefix(at least 5 characters, default : data_): ' db_table_prefix
-	: ${db_table_prefix:=data_}
+	echo "Try again (The prefix should be 4 characters long and can only contain letters, numbers, and underscores or Leave it blank.)"
+	read -p 'Enter Database Table Prefix(The prefix should be 4 characters long and can only contain letters, numbers, and underscores or Leave it blank.): ' db_table_prefix
+	: ${db_table_prefix:=""}
 	sleep 1
 done
 echo "Ok."
